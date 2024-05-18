@@ -2,6 +2,8 @@
 
 > Platform that tells you how far you are as a driver from the next stop and how long it will take to get there
 
+## [Link to live version](https://drivernavigator.netlify.app/)
+
 ## Built With
 
 -React Js
