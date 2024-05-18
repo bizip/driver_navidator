@@ -1,9 +1,12 @@
 import './App.css';
+import Map from './components/Map';
+import NavBAr from './components/NavBAr';
 
 function App() {
   return (
     <div className="App">
-      <h1>Math magicians</h1>
+      <NavBAr />
+      <Map />
     </div>
   );
 }

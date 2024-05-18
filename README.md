@@ -1,12 +1,11 @@
-![](https://img.shields.io/badge/Microverse-blueviolet)
+# Driver navigator
 
-# Math magicians
-
-> "Math magicians" is a website for all fans of mathematics. It is a Single Page App (SPA) that allows users to: Make simple calculations. Read a random math-related
+> Platform that tells you how far you are as a driver from the next stop and how long it will take to get there
 
 ## Built With
 
 -React Js
+-Google Maps API for mapping and routing functionalities
 
 ## Getting Started
 
@@ -15,11 +14,10 @@ To get a local copy up and running follow these simple example steps.
 ### Prerequisites
 
 You need to have a git installed
-You need to have a basic knowledge about HTML and CSS
 
 ### Setup
 
-#### clone this project (using git clone https://github.com/bizip/math_magicians.git) to your local computer and use telminal to navigate into the parent directory of this project.
+#### clone this project (using git clone <https://github.com/bizip/driver_navigator.git>) to your local computer and use telminal to navigate into the parent directory of this project
 
 ### Install
 
