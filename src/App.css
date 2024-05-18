@@ -179,6 +179,9 @@
     }
 }
 
-.map_section{
+.map_section,
+.header{
   padding: 5rem 1rem;
+  padding-bottom: 2rem;
+  
 }
