@@ -15,6 +15,7 @@ const Map = ({ driverLocation }) => {
   const driverDirectionsRenderer = useRef(null);
   const [eta, setEta] = useState(null);
   const [distance, setDistance] = useState(null);
+  const [nextStop, setNextStop] = useState(null);
 
   useEffect(() => {
     if (!window.google) return;
@@ -28,7 +29,13 @@ const Map = ({ driverLocation }) => {
     mainDirectionsRenderer.current = new window.google.maps.DirectionsRenderer();
     mainDirectionsRenderer.current.setMap(map);
 
+    const startingPoint = {
+      position: { lat: -1.939826787816454, lng: 30.0445426438232 },
+      label: 'Starting Point: Nyabugogo',
+    };
+
     const stops = [
+      startingPoint,
       { position: { lat: -1.9355377074007851, lng: 30.060163829002217 }, label: 'Stop A' },
       { position: { lat: -1.9358808342336546, lng: 30.08024820994666 }, label: 'Stop B' },
       { position: { lat: -1.9489196023037583, lng: 30.092607828989397 }, label: 'Stop C' },
@@ -38,15 +45,27 @@ const Map = ({ driverLocation }) => {
     ];
 
     stops.forEach((stop) => {
-      new window.google.maps.Marker({
+      const marker = new window.google.maps.Marker({
         position: stop.position,
         map,
-        title: stop.label,
+      });
+
+      // Add hover event listeners for stop markers
+      const infoWindow = new window.google.maps.InfoWindow({
+        content: stop.label,
+      });
+
+      marker.addListener('mouseover', () => {
+        infoWindow.open(map, marker);
+      });
+
+      marker.addListener('mouseout', () => {
+        infoWindow.close();
       });
     });
 
     if (driverLocation) {
-      new window.google.maps.Marker({
+      const driverMarker = new window.google.maps.Marker({
         position: { lat: driverLocation.latitude, lng: driverLocation.longitude },
         map,
         title: 'Driver',
@@ -55,40 +74,53 @@ const Map = ({ driverLocation }) => {
         },
       });
 
-      if (stops.length > 0) {
-        const driverLatLng = new window.google.maps.LatLng(driverLocation.latitude, driverLocation.longitude);
-        const nextStopLatLng = new window.google.maps.LatLng(stops[0].position.lat, stops[0].position.lng);
+      // Add hover event listeners for driver marker
+      const driverInfoWindow = new window.google.maps.InfoWindow({
+        content: 'Driver',
+      });
 
-        driverDirectionsRenderer.current = new window.google.maps.DirectionsRenderer({
-          polylineOptions: {
-            strokeColor: '#0000FF',
-            strokeOpacity: 1.0,
-            strokeWeight: 2,
-          },
-        });
+      driverMarker.addListener('mouseover', () => {
+        driverInfoWindow.open(map, driverMarker);
+      });
 
-        driverDirectionsRenderer.current.setMap(map);
+      driverMarker.addListener('mouseout', () => {
+        driverInfoWindow.close();
+      });
 
-        const request = {
-          origin: driverLatLng,
-          destination: nextStopLatLng,
-          travelMode: window.google.maps.TravelMode.DRIVING,
-        };
+      const driverLatLng = new window.google.maps.LatLng(driverLocation.latitude, driverLocation.longitude);
+      const nextStopLatLng = new window.google.maps.LatLng(stops[0].position.lat, stops[0].position.lng);
+      setNextStop(stops[0].label); // Set the next stop's name
 
-        directionsService.current.route(request, (result, status) => {
-          if (status === window.google.maps.DirectionsStatus.OK) {
-            driverDirectionsRenderer.current.setDirections(result);
+      driverDirectionsRenderer.current = new window.google.maps.DirectionsRenderer({
+        polylineOptions: {
+          strokeColor: '#0000FF',
+          strokeOpacity: 1.0,
+          strokeWeight: 2,
+          strokeDashArray: [10, 10],
+        },
+      });
 
-            const durationInSeconds = result.routes[0].legs[0].duration.value;
-            const etaInMinutes = Math.ceil(durationInSeconds / 60); // Convert to minutes
-            setEta(etaInMinutes);
+      driverDirectionsRenderer.current.setMap(map);
 
-            const distanceInMeters = result.routes[0].legs[0].distance.value;
-            const distanceInKilometers = (distanceInMeters / 1000).toFixed(2); // Convert to kilometers
-            setDistance(distanceInKilometers);
-          }
-        });
-      }
+      const request = {
+        origin: driverLatLng,
+        destination: nextStopLatLng,
+        travelMode: window.google.maps.TravelMode.DRIVING,
+      };
+
+      directionsService.current.route(request, (result, status) => {
+        if (status === window.google.maps.DirectionsStatus.OK) {
+          driverDirectionsRenderer.current.setDirections(result);
+
+          const durationInSeconds = result.routes[0].legs[0].duration.value;
+          const etaInMinutes = Math.ceil(durationInSeconds / 60); // Convert to minutes
+          setEta(etaInMinutes);
+
+          const distanceInMeters = result.routes[0].legs[0].distance.value;
+          const distanceInKilometers = (distanceInMeters / 1000).toFixed(2); // Convert to kilometers
+          setDistance(distanceInKilometers);
+        }
+      });
     }
 
     const waypoints = stops.slice(1, -1).map((stop) => ({
@@ -114,17 +146,19 @@ const Map = ({ driverLocation }) => {
 
   return (
     <div>
-         <div className='header'>
+      <div className='header'>
         <div>
-           <h2>Nyabugogo - Kimiromko</h2>
-            Next stop:
+          <h2>Nyabugogo - Kimiromko</h2>
+          Next stop:
+{' '}
+{nextStop || 'Calculating...'}
         </div>
         {eta !== null && distance !== null ? (
           `Distance: ${distance} km, ETA: ${eta} minutes`
         ) : (
           'Calculating ETA and Distance...'
         )}
-         </div>
+      </div>
       <div ref={mapRef} style={{ width: '100%', height: '500px' }} />
     </div>
   );
